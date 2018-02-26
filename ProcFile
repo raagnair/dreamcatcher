@@ -1,0 +1,1 @@
+web: java -cp target/dreamcatcher-0.0.1-SNAPSHOT.jar com.raagnair.dreamcatcher.server.WebServer
