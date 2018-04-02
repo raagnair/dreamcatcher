@@ -1,43 +1,83 @@
 package com.raagnair.dreamcatcher.server;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
-public class WebServer {
-	public static int DEFAULT_PORT = 8080;
-	public static String PORT_ENV_VAR = "PORT";
+import com.raagnair.dreamcatcher.config.Configurator;
+import com.raagnair.dreamcatcher.config.WebConstant;
 
-	public static void main(String[] args) throws Exception {
-		String portStr = System.getenv(PORT_ENV_VAR);
-		int port = DEFAULT_PORT;
-		if (portStr != null)
-			port = Integer.parseInt(portStr);
-		Server server = new Server(port);
+public class WebServer
+{
+    public static final Logger       LOGGER       = Logger.getLogger(WebServer.class.getSimpleName());
+    private static final ClassLoader CLASS_LOADER = WebServer.class.getClassLoader();
+    private static final int         PORT         = getPort();
+    private static final String      WEBAPP_DIR   = Configurator.get(WebConstant.DIRECTORY_WEBAPP);
+    private static final String      PATH_REST    = Configurator.get(WebConstant.PATH_REST);
+    private static final String      PATH_HTML    = Configurator.get(WebConstant.PATH_HTML);
+    private static final String      PACKAGE_REST = Configurator.get(WebConstant.PACKAGE_REST);
 
-		ServletHandler handler = new ServletHandler();
-		server.setHandler(handler);
+    public static void main(String[] args) throws Exception
+    {
+        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        contextHandler.addServlet(prepareStaticHandler(), PATH_HTML);
+        contextHandler.addServlet(prepareRESTHandler(), PATH_REST);
+        Server server = new Server(PORT);
+        server.setHandler(contextHandler);
 
-		handler.addServletWithMapping(HelloServlet.class, "/*");
+        try
+        {
+            server.start();
+            LOGGER.info("WebServer has started up.");
 
-		server.start();
-		server.join();
-	}
+            server.join();
+        }
+        catch (Exception e)
+        {
+            LOGGER.log(Level.SEVERE, "Server terminated.", e);
+        }
+        finally
+        {
+            try
+            {
+                server.stop();
+            }
+            catch (Exception e)
+            {
+                LOGGER.log(Level.SEVERE, "Server termination failed.", e);
+            }
+            finally
+            {
+                server.destroy();
+            }
+        }
+    }
 
-	@SuppressWarnings("serial")
-	public static class HelloServlet extends HttpServlet {
-		@Override
-		protected void doGet(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException {
-			response.setContentType("text/html");
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.getWriter().println("<h1>Hello from HelloServlet</h1>");
-		}
-	}
+    private static ServletHolder prepareRESTHandler()
+    {
+        ResourceConfig resourceConfig = new ResourceConfig();
+
+        resourceConfig.packages(PACKAGE_REST);
+
+        return new ServletHolder(new ServletContainer(resourceConfig));
+    }
+
+    private static ServletHolder prepareStaticHandler()
+    {
+        ServletHolder holder = new ServletHolder(new DefaultServlet());
+        holder.setInitParameter("resourceBase", CLASS_LOADER.getResource(WEBAPP_DIR)
+                .toExternalForm());
+        return holder;
+    }
+
+    private static int getPort()
+    {
+        return Integer.parseInt(Configurator.get(WebConstant.PORT));
+    }
 }
