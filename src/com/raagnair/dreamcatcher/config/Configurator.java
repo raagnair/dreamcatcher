@@ -2,18 +2,14 @@ package com.raagnair.dreamcatcher.config;
 
 public class Configurator
 {
-    public static String get(WebConstant var)
+    public static String getProperty(WebConstant var)
     {
         return System.getProperty(var.varName, var.varDefault);
     }
 
-    public static String get(WebConstant var, String defaultValue)
+    public static String getsEnvVariable(WebConstant var)
     {
-        return System.getProperty(var.varName, defaultValue);
-    }
-
-    public static String get(String var, String defaultValue)
-    {
-        return System.getProperty(var, defaultValue);
+        String envVar = System.getenv(var.varName);
+        return envVar != null ? envVar : var.varDefault;
     }
 }

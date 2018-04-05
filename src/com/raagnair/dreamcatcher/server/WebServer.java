@@ -18,10 +18,10 @@ public class WebServer
     public static final Logger       LOGGER       = Logger.getLogger(WebServer.class.getSimpleName());
     private static final ClassLoader CLASS_LOADER = WebServer.class.getClassLoader();
     private static final int         PORT         = getPort();
-    private static final String      WEBAPP_DIR   = Configurator.get(WebConstant.DIRECTORY_WEBAPP);
-    private static final String      PATH_REST    = Configurator.get(WebConstant.PATH_REST);
-    private static final String      PATH_HTML    = Configurator.get(WebConstant.PATH_HTML);
-    private static final String      PACKAGE_REST = Configurator.get(WebConstant.PACKAGE_REST);
+    private static final String      WEBAPP_DIR   = Configurator.getProperty(WebConstant.DIRECTORY_WEBAPP);
+    private static final String      PATH_REST    = Configurator.getProperty(WebConstant.PATH_REST);
+    private static final String      PATH_HTML    = Configurator.getProperty(WebConstant.PATH_HTML);
+    private static final String      PACKAGE_REST = Configurator.getProperty(WebConstant.PACKAGE_REST);
 
     public static void main(String[] args) throws Exception
     {
@@ -78,6 +78,6 @@ public class WebServer
 
     private static int getPort()
     {
-        return Integer.parseInt(Configurator.get(WebConstant.PORT));
+        return Integer.parseInt(Configurator.getsEnvVariable(WebConstant.PORT));
     }
 }
