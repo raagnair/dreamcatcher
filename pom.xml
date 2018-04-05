@@ -43,6 +43,7 @@
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
 			<resource>
+			<targetPath>frontend/</targetPath>
 				<directory>src/frontend</directory>
 			</resource>
 		</resources>
